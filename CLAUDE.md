@@ -67,3 +67,5 @@ Errors go to stderr as `{"error": "..."}` with exit code 1.
 
 ## Caching
 All results cached in SQLite (`vasco_cache.db`) with 24hr TTL.
+
+Read MEMORY.md for sourcing patterns, output requirements, and API quirks.
