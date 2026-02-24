@@ -40,8 +40,8 @@ Run Claude Code from the project directory. Ask it to source components in natur
 ```
 Find me an STM32F405 in stock on LCSC
 What are some alternatives to C15742?
-Search DigiKey for LM358 and compare pricing
 Find SOP-4 optocouplers with phototransistor output
+Find 100x 0.1uF 0805 capacitors — check both LCSC and DigiKey, compare stock and pricing, and recommend the best option
 ```
 
 Claude Code reads the `CLAUDE.md` instructions and invokes the navigator modules automatically to search, compare, and recommend parts.
