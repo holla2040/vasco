@@ -35,31 +35,16 @@ DIGIKEY_CLIENT_SECRET=your_client_secret
 
 ## Usage
 
-### LCSC
+Run Claude Code from the project directory. Ask it to source components in natural language:
 
-```bash
-python -m vasco.navigators.lcsc search "STM32F405"
-python -m vasco.navigators.lcsc search "STM32F405" --in-stock --exact
-python -m vasco.navigators.lcsc details "C15742"
-python -m vasco.navigators.lcsc categories
-python -m vasco.navigators.lcsc category 312 --in-stock
+```
+Find me an STM32F405 in stock on LCSC
+What are some alternatives to C15742?
+Search DigiKey for LM358 and compare pricing
+Find SOP-4 optocouplers with phototransistor output
 ```
 
-### jlcsearch
-
-```bash
-python -m vasco.navigators.jlcsearch search "ESP32"
-python -m vasco.navigators.jlcsearch filter --category "Optocouplers - Phototransistor Output" --package SOP-4
-python -m vasco.navigators.jlcsearch categories opto
-python -m vasco.navigators.jlcsearch health
-```
-
-### DigiKey
-
-```bash
-python -m vasco.navigators.digikey search "LM358"
-python -m vasco.navigators.digikey details "296-1395-5-ND"
-```
+Claude Code reads the `CLAUDE.md` instructions and invokes the navigator modules automatically to search, compare, and recommend parts.
 
 ## License
 
