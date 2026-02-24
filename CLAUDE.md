@@ -69,3 +69,5 @@ Errors go to stderr as `{"error": "..."}` with exit code 1.
 All results cached in SQLite (`vasco_cache.db`) with 24hr TTL.
 
 Read MEMORY.md for sourcing patterns, output requirements, and API quirks.
+
+Always use the default model for sourcing tasks — never downgrade to a smaller model.
