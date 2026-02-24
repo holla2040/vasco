@@ -1,28 +1,28 @@
-# Galleon — Component Sourcing Agent
+# Vasco — Component Sourcing Agent
 
 ## Project Overview
-Galleon automates electronic component sourcing. Claude Code acts as the orchestrator, invoking navigator modules that return JSON results to stdout.
+Vasco automates electronic component sourcing. Claude Code acts as the orchestrator, invoking navigator modules that return JSON results to stdout.
 
 ## Navigator Invocation
 Each navigator is a standalone Python module invoked via `python -m`:
 
 ```bash
 # LCSC — official API, requires .env with LCSC_API_KEY + LCSC_API_SECRET
-python -m galleon.navigators.lcsc search "<keyword>"
-python -m galleon.navigators.lcsc search "<keyword>" --in-stock --exact
-python -m galleon.navigators.lcsc details "<LCSC code e.g. C15742>"
-python -m galleon.navigators.lcsc categories
-python -m galleon.navigators.lcsc category <category_id> --in-stock
+python -m vasco.navigators.lcsc search "<keyword>"
+python -m vasco.navigators.lcsc search "<keyword>" --in-stock --exact
+python -m vasco.navigators.lcsc details "<LCSC code e.g. C15742>"
+python -m vasco.navigators.lcsc categories
+python -m vasco.navigators.lcsc category <category_id> --in-stock
 
 # jlcsearch — fallback, no auth, can be flaky (502s from Cloudflare)
-python -m galleon.navigators.jlcsearch search "<keyword>"
-python -m galleon.navigators.jlcsearch filter --category "Optocouplers - Phototransistor Output" --package SOP-4
-python -m galleon.navigators.jlcsearch categories opto
-python -m galleon.navigators.jlcsearch health
+python -m vasco.navigators.jlcsearch search "<keyword>"
+python -m vasco.navigators.jlcsearch filter --category "Optocouplers - Phototransistor Output" --package SOP-4
+python -m vasco.navigators.jlcsearch categories opto
+python -m vasco.navigators.jlcsearch health
 
 # DigiKey — requires .env with DIGIKEY_CLIENT_ID + DIGIKEY_CLIENT_SECRET
-python -m galleon.navigators.digikey search "<keyword>"
-python -m galleon.navigators.digikey details "<DigiKey product number>"
+python -m vasco.navigators.digikey search "<keyword>"
+python -m vasco.navigators.digikey details "<DigiKey product number>"
 ```
 
 ## Sourcing Workflow
@@ -66,4 +66,4 @@ Errors go to stderr as `{"error": "..."}` with exit code 1.
 - **jlcsearch**: No known limits, but unreliable
 
 ## Caching
-All results cached in SQLite (`galleon_cache.db`) with 24hr TTL.
+All results cached in SQLite (`vasco_cache.db`) with 24hr TTL.

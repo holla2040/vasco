@@ -8,7 +8,7 @@ from pathlib import Path
 import aiosqlite
 
 DEFAULT_TTL = 86400  # 24 hours
-DB_PATH = Path(__file__).resolve().parent.parent / "galleon_cache.db"
+DB_PATH = Path(__file__).resolve().parent.parent / "vasco_cache.db"
 
 _CREATE_TABLE = """
 CREATE TABLE IF NOT EXISTS cache (

@@ -17,10 +17,10 @@ import time
 
 import httpx
 
-from galleon.cache import get as cache_get, put as cache_put
+from vasco.cache import get as cache_get, put as cache_put
 
 BASE = "https://jlcsearch.tscircuit.com"
-HEADERS = {"User-Agent": "Galleon/0.1 (component-sourcing-agent)"}
+HEADERS = {"User-Agent": "Vasco/0.1 (component-sourcing-agent)"}
 MAX_RETRIES = 3
 RETRY_DELAYS = [1, 3, 6]  # seconds
 
@@ -252,7 +252,7 @@ def _error(msg: str) -> None:
     sys.exit(1)
 
 
-USAGE = """Usage: python -m galleon.navigators.jlcsearch <command> [args]
+USAGE = """Usage: python -m vasco.navigators.jlcsearch <command> [args]
 
 Commands:
   search <keyword>                              Search by MPN or keyword
@@ -261,10 +261,10 @@ Commands:
   health                                        Check API status
 
 Examples:
-  python -m galleon.navigators.jlcsearch search "TLP187"
-  python -m galleon.navigators.jlcsearch filter --category "Optocouplers - Phototransistor Output" --package SOP-4
-  python -m galleon.navigators.jlcsearch categories opto
-  python -m galleon.navigators.jlcsearch health"""
+  python -m vasco.navigators.jlcsearch search "TLP187"
+  python -m vasco.navigators.jlcsearch filter --category "Optocouplers - Phototransistor Output" --package SOP-4
+  python -m vasco.navigators.jlcsearch categories opto
+  python -m vasco.navigators.jlcsearch health"""
 
 
 async def _main() -> None:

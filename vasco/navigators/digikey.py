@@ -21,7 +21,7 @@ from pathlib import Path
 import httpx
 from dotenv import load_dotenv
 
-from galleon.cache import get as cache_get, put as cache_put
+from vasco.cache import get as cache_get, put as cache_put
 
 load_dotenv()
 
@@ -374,7 +374,7 @@ def _error(msg: str) -> None:
     sys.exit(1)
 
 
-USAGE = """Usage: python -m galleon.navigators.digikey <command> [args]
+USAGE = """Usage: python -m vasco.navigators.digikey <command> [args]
 
 Commands:
   search <keyword> [options]       Keyword/MPN search
@@ -390,11 +390,11 @@ Commands:
   manufacturers                    List all manufacturers
 
 Examples:
-  python -m galleon.navigators.digikey search "TLP187"
-  python -m galleon.navigators.digikey search "optocoupler" --category-id 48 --in-stock
-  python -m galleon.navigators.digikey details "TLP187(E(T-ND"
-  python -m galleon.navigators.digikey substitutions "TLP187(E(T-ND"
-  python -m galleon.navigators.digikey categories"""
+  python -m vasco.navigators.digikey search "TLP187"
+  python -m vasco.navigators.digikey search "optocoupler" --category-id 48 --in-stock
+  python -m vasco.navigators.digikey details "TLP187(E(T-ND"
+  python -m vasco.navigators.digikey substitutions "TLP187(E(T-ND"
+  python -m vasco.navigators.digikey categories"""
 
 
 async def _main() -> None:

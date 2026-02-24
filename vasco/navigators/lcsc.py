@@ -24,13 +24,13 @@ import time
 import httpx
 from dotenv import load_dotenv
 
-from galleon.cache import get as cache_get, put as cache_put
+from vasco.cache import get as cache_get, put as cache_put
 
 load_dotenv()
 
 BASE_URL = "https://ips.lcsc.com"
 SOURCE = "lcsc"
-HEADERS = {"User-Agent": "Galleon/0.1 (component-sourcing-agent)"}
+HEADERS = {"User-Agent": "Vasco/0.1 (component-sourcing-agent)"}
 
 
 # ---------------------------------------------------------------------------
@@ -266,7 +266,7 @@ def _error(msg: str) -> None:
     sys.exit(1)
 
 
-USAGE = """Usage: python -m galleon.navigators.lcsc <command> [args]
+USAGE = """Usage: python -m vasco.navigators.lcsc <command> [args]
 
 Commands:
   search <keyword> [--page N] [--exact] [--in-stock]
@@ -275,11 +275,11 @@ Commands:
   category <id> [--page N] [--in-stock]
 
 Examples:
-  python -m galleon.navigators.lcsc search "STM32F405RGT6"
-  python -m galleon.navigators.lcsc search "optocoupler" --in-stock
-  python -m galleon.navigators.lcsc details C15742
-  python -m galleon.navigators.lcsc categories
-  python -m galleon.navigators.lcsc category 11329 --in-stock"""
+  python -m vasco.navigators.lcsc search "STM32F405RGT6"
+  python -m vasco.navigators.lcsc search "optocoupler" --in-stock
+  python -m vasco.navigators.lcsc details C15742
+  python -m vasco.navigators.lcsc categories
+  python -m vasco.navigators.lcsc category 11329 --in-stock"""
 
 
 async def _main() -> None:

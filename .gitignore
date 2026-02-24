@@ -15,7 +15,7 @@ venv/
 .digikey_token.json
 
 # SQLite cache
-galleon_cache.db
+vasco_cache.db
 
 # IDE
 .idea/
