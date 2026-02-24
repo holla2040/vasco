@@ -5,7 +5,8 @@ Register at https://developer.digikey.com/
 
 Commands:
   search <keyword> [options]     Keyword/MPN search with optional filters
-  details <product_number>       Full product details + parameters
+  details <product_number>       Full product details + parameters (includes parameter_id/value_id)
+  filter [options]               Parametric search within a category (View Similar)
   substitutions <product_number> Find alternates/substitutions
   categories                     List all product categories
   manufacturers                  List all manufacturers
@@ -141,6 +142,16 @@ async def _request(method: str, path: str, token: str, **kwargs) -> httpx.Respon
 # Normalization
 # ---------------------------------------------------------------------------
 
+def _leaf_category(cat: dict) -> dict:
+    """Walk ChildCategories to find the deepest (leaf) category node."""
+    children = cat.get("ChildCategories") or []
+    for child in children:
+        leaf = _leaf_category(child)
+        if leaf:
+            return leaf
+    return cat
+
+
 def _normalize_product(p: dict) -> list[dict]:
     """Normalize a product from KeywordSearch response.
 
@@ -156,12 +167,13 @@ def _normalize_product(p: dict) -> list[dict]:
             parameters[name] = value
 
     category = p.get("Category", {}) or {}
+    leaf_cat = _leaf_category(category)
     base = {
         "mpn": p.get("ManufacturerProductNumber", ""),
         "manufacturer": (p.get("Manufacturer", {}) or {}).get("Name", ""),
         "description": (p.get("Description", {}) or {}).get("DetailedDescription", ""),
-        "category": category.get("Name", ""),
-        "category_id": category.get("CategoryId"),
+        "category": leaf_cat.get("Name", category.get("Name", "")),
+        "category_id": leaf_cat.get("CategoryId", category.get("CategoryId")),
         "datasheet_url": p.get("DatasheetUrl", ""),
         "product_url": p.get("ProductUrl", ""),
         "photo_url": p.get("PhotoUrl", ""),
@@ -301,7 +313,11 @@ async def search(
 
 
 async def details(product_number: str) -> dict:
-    """Get full product details including all parameters."""
+    """Get full product details including all parameters.
+
+    The response includes a top-level `parameters` list with raw parameter_id
+    and value_id fields needed to construct parametric_filter() calls.
+    """
     cache_key = f"details:{product_number}"
     cached = await cache_get(SOURCE, cache_key)
     if cached is not None:
@@ -311,7 +327,84 @@ async def details(product_number: str) -> dict:
     resp = await _request("get", f"/search/{product_number}/productdetails", token)
     raw = resp.json()
 
-    result = _make_envelope([raw] if raw else [], product_number)
+    # v4 productdetails wraps the product under a "Product" key
+    product = raw.get("Product", raw) if isinstance(raw, dict) else {}
+
+    result = _make_envelope([product] if product else [], product_number)
+
+    # Preserve parameter IDs for the parametric filter workflow
+    params_raw = product.get("Parameters", []) or []
+    result["parameters"] = [
+        {
+            "name": p.get("ParameterText", p.get("Parameter", "")),
+            "value": p.get("ValueText", p.get("Value", "")),
+            "parameter_id": p.get("ParameterId"),
+            "value_id": p.get("ValueId"),
+        }
+        for p in params_raw
+        if p.get("ParameterText") or p.get("Parameter")
+    ]
+    # Top-level category_id for convenience (already in products[0] but easier to access here)
+    result["category_id"] = (product.get("Category", {}) or {}).get("CategoryId")
+
+    await cache_put(SOURCE, cache_key, result)
+    return result
+
+
+async def parametric_filter(
+    category_id: int,
+    param_filters: list[dict],
+    in_stock: bool = False,
+    limit: int = 50,
+    keyword: str = "",
+) -> dict:
+    """Parametric search — find parts matching specific attribute values.
+
+    Equivalent to DigiKey's "View Similar" UI: same category, selected params.
+    param_filters comes from the parameters[] field in a details() response:
+      [{"parameter_id": int, "value_id": str}, ...]
+    """
+    cache_key = (
+        f"filter:{category_id}:"
+        + ",".join(
+            f"{f['parameter_id']}:{f['value_id']}"
+            for f in sorted(param_filters, key=lambda x: x["parameter_id"])
+        )
+        + f":{in_stock}:{keyword}"
+    )
+    cached = await cache_get(SOURCE, cache_key)
+    if cached is not None:
+        return cached
+
+    token = await _get_token()
+
+    filters: dict = {
+        "MarketPlaceFilter": "ExcludeMarketPlace",
+        "CategoryFilter": [{"Id": str(category_id)}],
+        "ParametricFilters": [
+            {"ParameterId": f["parameter_id"], "ValueIds": [str(f["value_id"])]}
+            for f in param_filters
+            if f.get("parameter_id") is not None and f.get("value_id") is not None
+        ],
+    }
+    if in_stock:
+        filters["SearchOptions"] = ["InStock"]
+
+    payload = {
+        "Keywords": keyword,
+        "Limit": limit,
+        "Offset": 0,
+        "FilterOptionsRequest": filters,
+    }
+
+    resp = await _request("post", "/search/keyword", token, json=payload)
+    raw = resp.json()
+
+    products_raw = raw.get("Products", [])
+    total = raw.get("ProductsCount", len(products_raw))
+    result = _make_envelope(products_raw, keyword or f"category:{category_id}", total)
+    result["filter_applied"] = param_filters
+
     await cache_put(SOURCE, cache_key, result)
     return result
 
@@ -385,6 +478,15 @@ Commands:
     --sort <field>                 Sort by: Price, QuantityAvailable, Manufacturer
 
   details <product_number>         Full product details + parameters
+                                   (response includes parameters[] with parameter_id/value_id)
+
+  filter [options]                 Parametric search (View Similar)
+    --category-id N                Category to search within (required)
+    --param <id>:<value_id>        Attribute filter (repeatable)
+    --in-stock                     Only in-stock parts
+    --limit N                      Results per page (1-50, default 50)
+    --keyword "..."                Optional keyword to narrow results further
+
   substitutions <product_number>   Find alternates/substitutions
   categories                       List all product categories
   manufacturers                    List all manufacturers
@@ -394,7 +496,11 @@ Examples:
   python -m vasco.navigators.digikey search "optocoupler" --category-id 48 --in-stock
   python -m vasco.navigators.digikey details "TLP187(E(T-ND"
   python -m vasco.navigators.digikey substitutions "TLP187(E(T-ND"
-  python -m vasco.navigators.digikey categories"""
+  python -m vasco.navigators.digikey categories
+
+  # After: python -m vasco.navigators.digikey details "296-LM358DR-ND"
+  # Pick parameter_id and value_id from the returned parameters[] field, then:
+  python -m vasco.navigators.digikey filter --category-id 2985 --param 1989:2 --param 16:SOP-8 --in-stock"""
 
 
 async def _main() -> None:
@@ -444,6 +550,39 @@ async def _main() -> None:
             if len(args) < 2:
                 _error("Missing product number.")
             print(json.dumps(await details(args[1]), indent=2))
+
+        elif command == "filter":
+            category_id = None
+            param_filters = []
+            in_stock = False
+            limit = 50
+            keyword = ""
+            i = 1
+            while i < len(args):
+                if args[i] == "--category-id" and i + 1 < len(args):
+                    category_id = int(args[i + 1])
+                    i += 2
+                elif args[i] == "--param" and i + 1 < len(args):
+                    pid, vid = args[i + 1].split(":", 1)
+                    param_filters.append({"parameter_id": int(pid), "value_id": vid})
+                    i += 2
+                elif args[i] == "--in-stock":
+                    in_stock = True
+                    i += 1
+                elif args[i] == "--limit" and i + 1 < len(args):
+                    limit = int(args[i + 1])
+                    i += 2
+                elif args[i] == "--keyword" and i + 1 < len(args):
+                    keyword = args[i + 1]
+                    i += 2
+                else:
+                    _error(f"Unknown argument: {args[i]}")
+            if category_id is None:
+                _error("--category-id is required for filter command.")
+            result = await parametric_filter(
+                category_id, param_filters, in_stock=in_stock, limit=limit, keyword=keyword
+            )
+            print(json.dumps(result, indent=2))
 
         elif command == "substitutions":
             if len(args) < 2:

@@ -23,6 +23,7 @@ python -m vasco.navigators.jlcsearch health
 # DigiKey — requires .env with DIGIKEY_CLIENT_ID + DIGIKEY_CLIENT_SECRET
 python -m vasco.navigators.digikey search "<keyword>"
 python -m vasco.navigators.digikey details "<DigiKey product number>"
+python -m vasco.navigators.digikey filter --category-id <id> --param <param_id>:<value_id> [--param ...] [--in-stock]
 ```
 
 ## Sourcing Workflow
@@ -31,7 +32,45 @@ python -m vasco.navigators.digikey details "<DigiKey product number>"
 3. **DigiKey for cross-reference** — authoritative specs, wider selection, 1000 searches/day limit
 
 ## Finding Alternates
-To find drop-in replacements:
+
+### DigiKey parametric filter (preferred — "View Similar" workflow)
+
+When the user asks for alternates, similars, drop-ins, or substitutes for a part that has a DigiKey PN:
+
+1. Call `python -m vasco.navigators.digikey details "<DigiKey PN>"` and parse `parameters[]` and `category_id` from the response.
+
+2. Pre-select attributes for drop-in compatibility. Default state:
+   - **ON by default**: Number of Circuits, Package / Case, Amplifier Type (or equivalent functional type), supply voltage range
+   - **OFF by default**: Operating Temperature, Slew Rate, GBW, CMRR, exact Vos/Ib specs, Supplier Device Package
+
+3. Present a numbered toggle list — show ALL parameters, one per line, with [ON]/[OFF] state:
+   ```
+   Attribute filters for LM358DR (category 32):
+   [ON]  1. Number of Circuits: 2  (parameter_id=2094)
+   [ON]  2. Package / Case: 8-SOIC (0.154", 3.90mm Width)  (parameter_id=16)
+   [ON]  3. Amplifier Type: Standard (General Purpose)  (parameter_id=161)
+   [OFF] 4. Operating Temperature: 0°C ~ 70°C (TA)  (parameter_id=252)
+   [OFF] 5. Slew Rate: 0.3V/µs  (parameter_id=511)
+   ...
+   Type numbers to toggle (e.g. "4 6"), or Enter to search.
+   ```
+
+4. Accept toggle input, update the display, repeat until the user presses Enter (or types nothing).
+
+5. Build the `filter` command from all ON attributes and run it:
+   ```bash
+   python -m vasco.navigators.digikey filter \
+     --category-id <id> \
+     --param <parameter_id>:<value_id> \
+     [--param ...] \
+     --in-stock
+   ```
+
+6. Present results per Output Rules (DigiKey PN column, pricing at 1/10/25/100, cut tape vs reel separated).
+
+**Do not skip the interview and guess a similar MPN from training knowledge.** Always use the parametric filter so results are grounded in live DigiKey data.
+
+### LCSC / jlcsearch alternates
 1. Get the target part's specs via `lcsc details <code>`
 2. Find its category ID from the attributes
 3. Browse that category with `lcsc category <id> --in-stock` to find alternates
