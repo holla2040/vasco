@@ -344,8 +344,9 @@ async def details(product_number: str) -> dict:
         for p in params_raw
         if p.get("ParameterText") or p.get("Parameter")
     ]
-    # Top-level category_id for convenience (already in products[0] but easier to access here)
-    result["category_id"] = (product.get("Category", {}) or {}).get("CategoryId")
+    # Leaf category_id for convenience — use _leaf_category() to match _normalize_product() behavior
+    cat = product.get("Category", {}) or {}
+    result["category_id"] = _leaf_category(cat).get("CategoryId")
 
     await cache_put(SOURCE, cache_key, result)
     return result
