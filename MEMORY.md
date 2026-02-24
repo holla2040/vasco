@@ -1,18 +1,8 @@
 # Vasco Operational Knowledge
 
-Sourcing patterns, output requirements, and API quirks learned through use.
+API quirks, footprint gotchas, and additional sourcing context. Output rules are in CLAUDE.md.
 
-## Output Requirements
-- **DigiKey**: ALWAYS include the DigiKey part number (e.g. `296-LM358DR-ND`) in its own column — users need it to order. It is NOT the same as MPN.
-- **LCSC**: ALWAYS include the LCSC code (e.g. C49678) when listing parts
-- **JLCPCB**: Flag whether parts are "Basic" or "Extended" (affects assembly fees)
-
-## Sourcing Decision Patterns
-- Start with LCSC/jlcsearch (free, no auth) before burning DigiKey quota
-- JLCPCB "Basic" parts have lower assembly fees than "Extended"
-- User orders in small quantities (~25 pcs). Always show pricing at 10-25 qty, not 1K
-- Many DigiKey parts are tape & reel only (MOQ 1000-3000) — always check for cut-tape/tube variants (different DigiKey PN, same MPN)
-- DigiKey tape & reel pricing (MOQ 1000+) is not useful for small orders — show cut-tape/tube prices
+## Sourcing Context
 - LCSC/JLCPCB is typically 3-5x cheaper than DigiKey for small qty
 - When cross-referencing: show LCSC price @ 5+ qty, DigiKey price @ 10+ qty (tube)
 

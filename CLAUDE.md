@@ -68,6 +68,14 @@ Errors go to stderr as `{"error": "..."}` with exit code 1.
 ## Caching
 All results cached in SQLite (`vasco_cache.db`) with 24hr TTL.
 
-Read MEMORY.md for sourcing patterns, output requirements, and API quirks.
+Read MEMORY.md for API quirks, footprint gotchas, and additional sourcing context.
 
 Always use the default model for sourcing tasks — never downgrade to a smaller model.
+
+## Output Rules (MANDATORY)
+When presenting sourcing results, ALWAYS include these fields:
+- **DigiKey**: Include the DigiKey part number (e.g. `296-LM358DR-ND`) in its own column. Users need it to order. It is NOT the same as MPN.
+- **LCSC**: Include the LCSC code (e.g. `C49678`) in its own column.
+- **JLCPCB**: Flag whether parts are "Basic" or "Extended" (affects assembly fees).
+- Show pricing at small quantities (1/10/25/100). Tape & reel MOQ 1000+ pricing is secondary.
+- Separate cut-tape/tube variants from tape & reel variants — they have different DigiKey PNs.
