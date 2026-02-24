@@ -3,7 +3,7 @@
 Sourcing patterns, output requirements, and API quirks learned through use.
 
 ## Output Requirements
-- **DigiKey**: ALWAYS include the DigiKey part number (`digikey_pn`) when listing parts — it's distinct from MPN
+- **DigiKey**: ALWAYS include the DigiKey part number (e.g. `296-LM358DR-ND`) in its own column — users need it to order. It is NOT the same as MPN.
 - **LCSC**: ALWAYS include the LCSC code (e.g. C49678) when listing parts
 - **JLCPCB**: Flag whether parts are "Basic" or "Extended" (affects assembly fees)
 
